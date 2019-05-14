@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     path('upload/', views.UploadTableView.as_view()),
     path('run-query/', views.RunQueryView.as_view()),
+    path('query-status/', views.QueryStatusView.as_view()),
 ]
