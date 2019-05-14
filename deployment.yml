@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polyquerier
+spec:
+  selector:
+    matchLabels:
+      name: polyquerier
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: polyquerier
+    spec:
+      containers:
+        - name: polyquerier
+          image: "docker.io/kaushikc92/polyquerier:latest"
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: ""
+            - name: AWS_SECRET_ACCESS_KEY
+              value: ""
+            - name: AWS_STORAGE_BUCKET_NAME
+              value: ""

@@ -8,8 +8,6 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 import boto3
 from botocore.client import Config
 
-import pdb
-
 # Create your views here.
 class UploadTableView(APIView):
     parser_class = (MultiPartParser, FormParser)
@@ -73,8 +71,13 @@ class RunQueryView(APIView):
 
     def post(self, request):
         query_string = request.data['query']
-        client = boto3.client('athena', region_name='us-east-1')
-        response = client.start_query_execution(
+        athena = boto3.client(
+            'athena',
+            region_name = 'us-east-1',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
+        response = athena.start_query_execution(
             QueryString = query_string,
             QueryExecutionContext = {
                 'Database': 'lakesites'
@@ -90,7 +93,12 @@ class QueryStatusView(APIView):
 
     def get(self, request):
         queryExecutionId = request.query_params['query_id']
-        athena = boto3.client('athena', region_name='us-east-1')
+        athena = boto3.client(
+            'athena',
+            region_name = 'us-east-1',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
         response = athena.get_query_execution(
             QueryExecutionId = queryExecutionId
         )
