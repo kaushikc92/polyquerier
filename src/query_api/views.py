@@ -97,7 +97,8 @@ class QueryStatusView(APIView):
         data = {}
         state = response['QueryExecution']['Status']['State']
         data['state'] = state
-        #data['runtime'] = response['QueryExecution']['Statistics']['EngineExecutionTimeInMillis']
+        if 'EngineExecutionTimeInMillis' in response['QueryExecution']['Statistics']:
+            data['runtime'] = response['QueryExecution']['Statistics']['EngineExecutionTimeInMillis']
         if state == 'SUCCEEDED':
             s3 = boto3.client(
                 's3',
