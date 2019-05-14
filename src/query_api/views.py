@@ -15,8 +15,57 @@ class UploadTableView(APIView):
     parser_class = (MultiPartParser, FormParser)
 
     def post(self, request):
-        data = request.data
-        pdb.set_trace()
+        table_name = request.data['table_name']
+        s3 = boto3.client(
+            's3',
+            region_name = 'us-east-1',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
+        for csvfile in request.data.getlist('files[]'):
+            object_path = table_name + '/' + csvfile.name
+            s3.upload_fileobj(csvfile, settings.AWS_STORAGE_BUCKET_NAME, object_path)
+
+        schema = str(request.data['schema_file'].read(), 'utf-8').rstrip()
+
+        query_string = (
+            'CREATE EXTERNAL TABLE IF NOT EXISTS '
+            + table_name
+            + '('
+            + schema
+            + ')'
+            + ' ROW FORMAT SERDE \'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe\''
+            + ' WITH SERDEPROPERTIES ('
+            + ' \'serialization.format\' = \',\','
+            + ' \'field.delim\' = \',\''
+            + ' )'
+            + ' LOCATION \'s3://'
+            + settings.AWS_STORAGE_BUCKET_NAME
+            + '/'
+            + table_name
+            + '/\''
+            + ' TBLPROPERTIES ('
+            + ' \'skip.header.line.count\' = \'1\''
+            + ' )'
+        )
+
+        athena = boto3.client(
+            'athena',
+            region_name = 'us-east-1',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
+
+        athena.start_query_execution(
+            QueryString = query_string,
+            QueryExecutionContext = {
+                'Database': 'lakesites'
+            },
+            ResultConfiguration = {
+                'OutputLocation': 's3://' + settings.AWS_STORAGE_BUCKET_NAME + '/output/'
+            }
+        )
+
         return Response(status=status.HTTP_201_CREATED)
 
 class RunQueryView(APIView):
