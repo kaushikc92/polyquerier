@@ -32,11 +32,7 @@ class UploadTableView(APIView):
             + '('
             + schema
             + ')'
-            + ' ROW FORMAT SERDE \'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe\''
-            + ' WITH SERDEPROPERTIES ('
-            + ' \'serialization.format\' = \',\','
-            + ' \'field.delim\' = \',\''
-            + ' )'
+            + ' ROW FORMAT SERDE \'org.apache.hadoop.hive.serde2.OpenCSVSerde\''
             + ' LOCATION \'s3://'
             + settings.AWS_STORAGE_BUCKET_NAME
             + '/'
